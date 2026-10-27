@@ -1,0 +1,21 @@
+displayName: Security Gate
+type: middleware
+iconPath: .assets/icon.png
+
+import: github.com/scndr/securitygate
+
+summary: >
+  Enforces access via a configurable list of rules (mTLS with optional CRL,
+  shared-secret header) combined with anyOf or allOf logic.
+
+testData:
+  mode: anyOf
+  rules:
+    - type: mtls
+      crlFilePath: /pki/crl/crl.pem
+      crlReloadInterval: 60
+      insecureAllowUnverifiedClientCert: true
+      insecureFailOpen: true
+    - type: header
+      headerName: X-Api-Key
+      headerValue: supersecret
