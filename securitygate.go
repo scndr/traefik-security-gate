@@ -16,7 +16,7 @@
 // clientAuthType = VerifyClientCertIfGiven or RequireAndVerifyClientCert.
 // With any other value VerifiedChains is empty and the rule always fails
 // (safe by design) unless insecureAllowUnverifiedClientCert is set.
-package securitygate
+package traefik_security_gate
 
 import (
 	"context"

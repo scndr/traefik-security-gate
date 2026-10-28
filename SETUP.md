@@ -44,11 +44,11 @@ Mount the plugin directory and add it to the static configuration:
 experimental:
   localPlugins:
     securitygate:
-      moduleName: github.com/scndr/securitygate
+      moduleName: github.com/scndr/traefik-security-gate
 ```
 
 The plugin directory must be mounted at:
 
 ```
-/plugins-local/src/github.com/scndr/securitygate/
+/plugins-local/src/github.com/scndr/traefik-security-gate/
 ```

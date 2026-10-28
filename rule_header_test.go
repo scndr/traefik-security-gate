@@ -1,4 +1,4 @@
-package securitygate
+package traefik_security_gate
 
 import (
 	"net/http"

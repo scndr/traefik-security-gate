@@ -28,7 +28,7 @@ Add the plugin to your static configuration:
 experimental:
   plugins:
     securitygate:
-      moduleName: github.com/scndr/securitygate
+      moduleName: github.com/scndr/traefik-security-gate
       version: v0.1.0   # replace with the latest release tag
 ```
 
@@ -306,5 +306,5 @@ Static configuration for local plugin loading:
 experimental:
   localPlugins:
     securitygate:
-      moduleName: github.com/scndr/securitygate
+      moduleName: github.com/scndr/traefik-security-gate
 ```

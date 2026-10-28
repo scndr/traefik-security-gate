@@ -2,7 +2,7 @@ displayName: Security Gate
 type: middleware
 iconPath: .assets/icon.png
 
-import: github.com/scndr/securitygate
+import: github.com/scndr/traefik-security-gate
 
 summary: >
   Enforces access via a configurable list of rules (mTLS with optional CRL,
