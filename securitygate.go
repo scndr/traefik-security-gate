@@ -2,11 +2,14 @@
 // based on a configurable list of rules evaluated with anyOf or allOf logic.
 //
 // Supported rule types:
-//   - mtls:   passes if the request carries a TLS client certificate that was
+//   - mtls:        passes if the request carries a TLS client certificate that was
 //     VERIFIED by the TLS layer (VerifiedChains), optionally checked
 //     against a CRL. Secure by default; two explicit "insecure*"
 //     flags relax the behavior (see RuleConfig).
-//   - header: passes if a specific HTTP header matches the expected value
+//   - header:      passes if a specific HTTP header matches the expected value.
+//   - ipAllowList: passes if the client IP belongs to one of the configured CIDR
+//     ranges or exact IP addresses (see SourceRange, IPStrategy,
+//     IPStrategyDepth in RuleConfig).
 //
 // mode: anyOf (default) — at least one rule must pass
 // mode: allOf           — every rule must pass

@@ -8,12 +8,13 @@ A [Traefik](https://traefik.io) middleware plugin that lets a request through
 only if it satisfies a configurable list of rules, combined with `anyOf` or
 `allOf` logic. Everything else gets a uniform `403 Forbidden`.
 
-Two rule types are available:
+Three rule types are available:
 
-| Type     | Passes when…                                                                                |
-|----------|---------------------------------------------------------------------------------------------|
-| `mtls`   | the request carries a **verified** TLS client certificate, optionally checked against a CRL |
-| `header` | a given HTTP header has the expected value                                                  |
+| Type            | Passes when…                                                                                |
+|-----------------|---------------------------------------------------------------------------------------------|
+| `mtls`          | the request carries a **verified** TLS client certificate, optionally checked against a CRL |
+| `header`        | a given HTTP header has the expected value                                                  |
+| `ipAllowList`   | the client IP belongs to one of the configured CIDR ranges or exact addresses               |
 
 The plugin uses only the Go standard library and runs under Traefik's Yaegi
 interpreter (Traefik v3, Go 1.22+).
@@ -29,7 +30,7 @@ experimental:
   plugins:
     securitygate:
       moduleName: github.com/scndr/traefik-security-gate
-      version: v0.1.0   # replace with the latest release tag
+      version: v1.2.0   # replace with the latest release tag
 ```
 
 The plugin is published at
@@ -51,13 +52,17 @@ http:
     gate:
       plugin:
         securitygate:
-          mode: anyOf          # a client certificate OR the API key is enough
+          mode: anyOf          # you can use "allOf", in this case a client certificate OR the API key or IP allowlist is enough 
           rules:
             - type: mtls
               crlFilePath: /certs/crl.pem
             - type: header
               headerName: X-Gate-Key
               headerValue: change-me
+            - type: ipAllowList
+              sourceRange:
+                - "192.168.1.0/24"
+                - "172.18.0.0/16"
 
   routers:
     app:
@@ -99,6 +104,14 @@ tls:
 
 > The header is stripped from every allowed request, even in `anyOf` mode when
 > the request was admitted by a different rule (e.g. `mtls`).
+
+### Rule `ipAllowList`
+
+| Field         | Default      | Description                                                                                                                                                                         |
+|---------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `type`        | –            | Must be `ipAllowList`.                                                                                                                                                              |
+| `sourceRange` | –            | List of allowed IP addresses or CIDR ranges (required). Plain IPs (e.g. `192.168.1.5`) are accepted alongside CIDRs.                                                               |
+| `ipDepth`     | `0`          | When `0` (default), the client IP is read from `req.RemoteAddr` (direct TCP peer). When `> 0`, the IP is taken from `X-Forwarded-For` at position `depth` from the right (`1` = rightmost). Mirrors Traefik's built-in `ipStrategy.depth`. |
 
 ### Rule `mtls`
 
@@ -221,6 +234,18 @@ rules:
     headerValue: mysecret
 ```
 
+### IP allowlist only
+
+```yaml
+rules:
+  - type: ipAllowList
+    sourceRange:
+      - "127.0.0.1/32"
+      - "192.168.1.0/24"
+      - "10.8.0.0/24"
+      - "172.18.0.0/16"
+```
+
 ### mTLS with fail-open
 
 Accept connections even if the CRL file becomes temporarily unavailable
@@ -237,24 +262,45 @@ rules:
 
 ## IP allowlisting
 
-IP-based access control is intentionally not included. Use Traefik's built-in
-[`ipAllowList`](https://doc.traefik.io/traefik/middlewares/http/ipallowolist/)
-middleware and chain it with SecurityGate:
+Use the `ipAllowList` rule type to restrict access by client IP.
+
+### LAN/VPN only
 
 ```yaml
-http:
-  middlewares:
-    lan-only:
-      ipAllowList:
-        sourceRange:
-          - "192.168.0.0/16"
-          - "10.0.0.0/8"
+rules:
+  - type: ipAllowList
+    sourceRange:
+      - "127.0.0.1/32"
+      - "192.168.1.0/24"
+      - "10.8.0.0/24"
+      - "172.18.0.0/16"
+```
 
-  routers:
-    my-router:
-      middlewares:
-        - lan-only
-        - my-gate
+### Behind a trusted proxy (depth)
+
+When Traefik sits behind a reverse proxy that appends to `X-Forwarded-For`,
+use `ipDepth` to select the real client IP instead of the proxy address.
+`ipDepth: 1` takes the rightmost entry (the address appended by the closest
+proxy), `ipDepth: 2` takes the second-from-right, and so on.
+
+```yaml
+rules:
+  - type: ipAllowList
+    sourceRange:
+      - "192.168.1.0/24"
+    ipDepth: 1
+```
+
+### IP allowlist combined with mTLS (`anyOf`)
+
+```yaml
+mode: anyOf
+rules:
+  - type: ipAllowList
+    sourceRange:
+      - "10.0.0.0/8"
+  - type: mtls
+    crlFilePath: /certs/crl.pem
 ```
 
 ---

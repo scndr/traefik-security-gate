@@ -8,8 +8,9 @@ import (
 type RuleType string
 
 const (
-	RuleTypeHeader RuleType = "header"
-	RuleTypeMTLS   RuleType = "mtls"
+	RuleTypeHeader      RuleType = "header"
+	RuleTypeMTLS        RuleType = "mtls"
+	RuleTypeIPAllowList RuleType = "ipAllowList"
 )
 
 type rule interface {
@@ -44,6 +45,16 @@ type RuleConfig struct {
 	// If the CRL is missing, unparsable or expired, every certificate is rejected.
 	// If true, certificates are accepted in that situation
 	InsecureFailOpen bool `json:"insecureFailOpen,omitempty"`
+
+	// --- ipAllowList rule fields ---
+
+	// SourceRange is the list of allowed IP addresses or CIDR ranges (e.g. "10.0.0.0/8", "192.168.1.5").
+	SourceRange []string `json:"sourceRange,omitempty"`
+
+	// IPDepth: when > 0, the client IP is taken from X-Forwarded-For by skipping
+	// the last N-1 entries from the right (depth=1 → rightmost, depth=2 → second-from-right, etc.).
+	// When 0 (default), req.RemoteAddr is used directly.
+	IPDepth int `json:"ipDepth,omitempty"`
 }
 
 func compileRules(cfgs []RuleConfig, pluginName string) ([]rule, error) {
@@ -64,8 +75,14 @@ func compileRules(cfgs []RuleConfig, pluginName string) ([]rule, error) {
 				rules = append(rules, r)
 			}
 
+		case RuleTypeIPAllowList:
+			var r *ipAllowListRule
+			if r, err = newIPAllowListRule(cfg); err == nil {
+				rules = append(rules, r)
+			}
+
 		default:
-			err = fmt.Errorf("unknown type %q (want %q or %q)", cfg.Type, RuleTypeHeader, RuleTypeMTLS)
+			err = fmt.Errorf("unknown type %q (want %q, %q or %q)", cfg.Type, RuleTypeHeader, RuleTypeMTLS, RuleTypeIPAllowList)
 		}
 
 		if err != nil {

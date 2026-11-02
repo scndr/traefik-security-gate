@@ -6,7 +6,7 @@ import: github.com/scndr/traefik-security-gate
 
 summary: >
   Enforces access via a configurable list of rules (mTLS with optional CRL,
-  shared-secret header) combined with anyOf or allOf logic.
+  shared-secret header, IP allowlist) combined with anyOf or allOf logic.
 
 testData:
   mode: anyOf
@@ -19,3 +19,8 @@ testData:
     - type: header
       headerName: X-Api-Key
       headerValue: supersecret
+    - type: ipAllowList
+      sourceRange:
+        - "192.168.1.0/24"
+        - "172.18.0.0/16"
+      ipDepth: 0
