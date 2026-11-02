@@ -1,6 +1,6 @@
 # Security Gate
 
-![Sablier Banner](.assets/icon.png)
+![Security Gate Banner](.assets/icon.png)
 
 [![GitHub](https://img.shields.io/badge/GitHub-scndr%2Ftraefik--security--gate-blue?logo=github)](https://github.com/scndr/traefik-security-gate)
 
