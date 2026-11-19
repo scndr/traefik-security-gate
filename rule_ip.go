@@ -3,6 +3,7 @@ package traefik_security_gate
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -60,10 +61,12 @@ func newIPAllowListRule(cfg RuleConfig) (*ipAllowListRule, error) {
 func (r *ipAllowListRule) check(req *http.Request) bool {
 	raw := r.extractIP(req)
 	if raw == "" {
+		log.Printf("securitygate: %s — %s", "KO IPALLOWLIST", "raw empty")
 		return false
 	}
 	ip := net.ParseIP(raw)
 	if ip == nil {
+		log.Printf("securitygate: %s — %s", "KO IPALLOWLIST", "ip nil")
 		return false
 	}
 	for _, cidr := range r.allowed {
@@ -71,6 +74,7 @@ func (r *ipAllowListRule) check(req *http.Request) bool {
 			return true
 		}
 	}
+	log.Printf("securitygate: %s — %s : %s", "KO IPALLOWLIST", ip, "ip not valid")
 	return false
 }
 

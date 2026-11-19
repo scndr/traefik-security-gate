@@ -92,7 +92,7 @@ func (r *mtlsRule) clientCert(req *http.Request) *x509.Certificate {
 		return req.TLS.PeerCertificates[0]
 	}
 
-	log.Printf("securitygate[%s]: %s — %s", r.name, "KO", "rejecting")
+	log.Printf("securitygate[%s]: %s — %s", r.name, "KO TLS", "rejecting")
 	return nil
 }
 

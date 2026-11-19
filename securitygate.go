@@ -24,6 +24,7 @@ package traefik_security_gate
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -75,6 +76,8 @@ func (sg *SecurityGate) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		sg.next.ServeHTTP(rw, req)
 		return
 	}
+	path := req.URL.Path
+	log.Printf("securitygate: %s — %s", "KO on Path", path)
 	http.Error(rw, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 }
 
